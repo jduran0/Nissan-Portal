@@ -9,7 +9,7 @@
 <body>
   <header>
     <h1>Gestión de Extensiones</h1>
-    <h2 id="sucursalNombre">Lista de Usuarios</h2>
+    <h2>Lista de Usuarios - Sucursal</h2>
   </header>
 
   <section>
@@ -29,7 +29,7 @@
       <input type="text" name="nombre" placeholder="Nombre" required>
       <input type="text" name="puesto" placeholder="Puesto" required>
       <input type="text" name="extension" placeholder="Extensión (máx. 4 dígitos)" required maxlength="4">
-      <input type="hidden" name="sucursal" id="sucursalInput">
+      <input type="hidden" name="sucursal" value="Nissan Rancagua Colima">
       <button type="submit">Registrar Usuario</button>
     </form>
   </section>
@@ -40,11 +40,7 @@
   </footer>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const sucursal = urlParams.get('sucursal');
-    document.getElementById('sucursalNombre').textContent += ` - ${sucursal}`;
-    document.getElementById('sucursalInput').value = sucursal;
-
+    // Manejar la búsqueda de usuarios
     const form = document.getElementById('buscarUsuariosForm');
     const resultados = document.getElementById('resultadosUsuarios');
 
@@ -56,12 +52,12 @@
       const extension = document.getElementById('extension').value;
 
       try {
-        const response = await fetch(`/buscarUsuarios?nombre=${nombre}&puesto=${puesto}&extension=${extension}&sucursal=${sucursal}`);
+        const response = await fetch(`/buscarUsuarios?nombre=${nombre}&puesto=${puesto}&extension=${extension}`);
         const usuarios = await response.json();
 
         resultados.innerHTML = usuarios.map(user => `
           <li>
-            Nombre: ${user.nombre}, Puesto: ${user.puesto}, Extensión: ${user.extension}
+            Nombre: ${user.nombre}, Puesto: ${user.puesto}, Extensión: ${user.extension}, Sucursal: ${user.sucursal}
           </li>
         `).join('');
       } catch (error) {
