@@ -1,85 +1,63 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Extensiones - Sucursal</title>
-  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>Gestión de Extensiones</h1>
-    <h2 id="sucursalNombre">Lista de Usuarios</h2>
-  </header>
-
-  <section>
-    <h3>Buscar Usuarios</h3>
-    <form id="buscarUsuariosForm">
-      <label for="nombre">Buscar por nombre:</label>
-      <input type="text" id="nombre" placeholder="Nombre">
-      
-      <label for="puesto">Buscar por puesto:</label>
-      <input type="text" id="puesto" placeholder="Puesto">
-      
-      <label for="extension">Buscar por extensión:</label>
-      <input type="number" id="extension" placeholder="Extensión">
-      
-      <button type="submit">Buscar</button>
-    </form>
-    <ul id="resultadosUsuarios"></ul>
-  </section>
-
-  <section>
-    <h3>Agregar Usuario</h3>
-    <form action="/agregarUsuario" method="POST">
-      <label for="nombreNuevo">Nombre:</label>
-      <input type="text" id="nombreNuevo" name="nombre" placeholder="Nombre" required>
-
-      <label for="puestoNuevo">Puesto:</label>
-      <input type="text" id="puestoNuevo" name="puesto" placeholder="Puesto" required>
-
-      <label for="extensionNuevo">Extensión (máx. 4 dígitos):</label>
-      <input type="text" id="extensionNuevo" name="extension" placeholder="Extensión" required maxlength="4">
-
-      <input type="hidden" id="sucursalInput" name="sucursal">
-      <button type="submit">Registrar Usuario</button>
-    </form>
-  </section>
-
-  <footer>
-    <button onclick="history.back()">Regresar</button>
-    <p>&copy; 2025 NISSAN Rancagua</p>
-  </footer>
+  <h1>Gestión de Extensiones - Sucursal</h1>
+  <div>
+    <h2>Buscar Usuarios</h2>
+    <input type="text" id="buscarNombre" placeholder="Buscar por nombre">
+    <input type="text" id="buscarPuesto" placeholder="Buscar por puesto">
+    <input type="text" id="buscarExtension" placeholder="Buscar por extensión">
+    <button onclick="buscar()">Buscar</button>
+  </div>
+  <div>
+    <h2>Agregar Usuario</h2>
+    <input type="text" id="nombre" placeholder="Nombre">
+    <input type="text" id="puesto" placeholder="Puesto">
+    <input type="text" id="extension" placeholder="Extensión (máx. 4 dígitos)">
+    <button onclick="agregar()">Registrar Usuario</button>
+  </div>
+  <div>
+    <h3>Regresar</h3>
+    <a href="index.html">Volver</a>
+  </div>
 
   <script>
-    // Obtener el nombre de la sucursal desde los parámetros de la URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const sucursal = urlParams.get('sucursal');
+    async function buscar() {
+      // Implementación de búsqueda
+      alert("Búsqueda implementada.");
+    }
 
-    // Mostrar el nombre de la sucursal en el título
-    const titulo = document.getElementById('sucursalNombre');
-    titulo.textContent += ` - ${sucursal}`;
+    async function agregar() {
+      const nombre = document.getElementById("nombre").value;
+      const puesto = document.getElementById("puesto").value;
+      const extension = document.getElementById("extension").value;
 
-    // Pasar el nombre de la sucursal al input oculto
-    document.getElementById('sucursalInput').value = sucursal;
+      if (!nombre || !puesto || extension.length > 4) {
+        alert("Por favor ingresa datos válidos.");
+        return;
+      }
 
-    // Manejo del formulario de búsqueda
-    const buscarForm = document.getElementById('buscarUsuariosForm');
-    const resultados = document.getElementById('resultadosUsuarios');
+      try {
+        const response = await fetch("/add-user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ nombre, puesto, extension }),
+        });
 
-    buscarForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-
-      // Obtener valores de búsqueda
-      const nombre = document.getElementById('nombre').value;
-      const puesto = document.getElementById('puesto').value;
-      const extension = document.getElementById('extension').value;
-
-      // Mostrar resultados simulados (podrías integrar con tu backend aquí)
-      resultados.innerHTML = `
-        <li>Resultado de ejemplo para: ${nombre || 'Nombre vacío'}, ${puesto || 'Puesto vacío'}, ${extension || 'Extensión vacía'}</li>
-      `;
-    });
+        const result = await response.json();
+        alert(result.message);
+      } catch (err) {
+        console.error("Error al agregar usuario:", err);
+        alert("Error al registrar usuario.");
+      }
+    }
   </script>
 </body>
 </html>
