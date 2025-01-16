@@ -1,106 +1,90 @@
-import express from 'express';
-import * as edgedb from 'edgedb'; // Importar EdgeDB
-import bodyParser from 'body-parser';
+import express from "express";
+import * as edgedb from "edgedb";
 
-// Crear el cliente de EdgeDB
+// Crear cliente de EdgeDB
 const client = edgedb.createClient({
-  instanceName: process.env.EDGEDB_INSTANCE_NAME, // Usamos la variable de entorno
-  secretKey: process.env.EDGEDB_SECRET_KEY, // Y la clave secreta desde la variable de entorno
+  instanceName: "vercel-rlyXL34RVAZWwkWRjRviDVgB/edgedb-green-tree",
+  secretKey: "nbwt1_eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlZGIuZC5hbGwiOnRydWUsImVkYi5pIjpbInZlcmNlbC1ybHlYTDM0UlZBWld3a1dSalJ2aURWZ0IvZWRnZWRiLWdyZWVuLXRyZWUiXSwiZWRiLnIuYWxsIjp0cnVlLCJpYXQiOjE3MzY5OTExMjAsImlzcyI6ImF3cy5lZGdlZGIuY2xvdWQiLCJqdGkiOiJyb3p4UnRPcEVlLXdla181Q0J2aEpnIiwic3ViIjoicmtMU0FOT3BFZS1kRUVQaTRpMnQ0ZyJ9.Hp9iyOkrNtvuRxK4GvucJW7FIGWDY4cCaxqR-khwgpgLjh74MJyCZlE1N3KEbARjLQxFgEVTN-QIb2CrT0v0_g"
 });
 
+// Configurar express
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
-// Ruta para obtener las extensiones
-app.get('/extensiones', async (req, res) => {
-  try {
-    // Realizamos una consulta a EdgeDB para obtener las extensiones
-    const extensiones = await client.query(`
-      SELECT Extension {
-        id,
-        numero,
-        nombre,
-        puesto,
-        sucursal
-      } ORDER BY sucursal;
-    `);
-    res.json(extensiones);
-  } catch (error) {
-    console.error("Error al obtener las extensiones:", error);
-    res.status(500).send("Error al obtener las extensiones");
-  }
+// Funciones de EdgeDB para CRUD
+async function cargarExtensiones(sucursal) {
+  const query = `
+    SELECT Extensiones {
+      nombre,
+      puesto,
+      extension
+    }
+    FILTER .sucursal = <str>$sucursal;
+  `;
+  const extensiones = await client.query(query, { sucursal });
+  return extensiones;
+}
+
+async function agregarExtension(nombre, puesto, extension, sucursal) {
+  const query = `
+    INSERT Extensiones {
+      nombre := <str>$nombre,
+      puesto := <str>$puesto,
+      extension := <str>$extension,
+      sucursal := <str>$sucursal
+    };
+  `;
+  await client.query(query, { nombre, puesto, extension, sucursal });
+}
+
+async function editarExtension(extension, nombre, puesto, nuevaExtension, sucursal) {
+  const query = `
+    UPDATE Extensiones
+    FILTER .extension = <str>$extension AND .sucursal = <str>$sucursal
+    SET {
+      nombre := <str>$nombre,
+      puesto := <str>$puesto,
+      extension := <str>$nuevaExtension
+    };
+  `;
+  await client.query(query, { extension, nombre, puesto, nuevaExtension, sucursal });
+}
+
+async function eliminarExtension(extension, sucursal) {
+  const query = `
+    DELETE Extensiones
+    FILTER .extension = <str>$extension AND .sucursal = <str>$sucursal;
+  `;
+  await client.query(query, { extension, sucursal });
+}
+
+// Rutas de la API
+app.get("/api/extensiones", async (req, res) => {
+  const sucursal = req.query.sucursal;
+  const extensiones = await cargarExtensiones(sucursal);
+  res.json(extensiones);
 });
 
-// Ruta para agregar una nueva extensión
-app.post('/extensiones', async (req, res) => {
-  try {
-    const { numero, nombre, puesto, sucursal } = req.body;
-    // Realizamos una consulta para agregar la extensión
-    const nuevaExtension = await client.query(`
-      INSERT Extension {
-        numero := <str>$numero,
-        nombre := <str>$nombre,
-        puesto := <str>$puesto,
-        sucursal := <str>$sucursal
-      }`, {
-      numero, nombre, puesto, sucursal,
-    });
-
-    res.status(201).json(nuevaExtension);
-  } catch (error) {
-    console.error("Error al agregar extensión:", error);
-    res.status(500).send("Error al agregar la extensión");
-  }
+app.post("/api/agregar", async (req, res) => {
+  const { nombre, puesto, extension, sucursal } = req.body;
+  await agregarExtension(nombre, puesto, extension, sucursal);
+  res.status(201).send();
 });
 
-// Ruta para modificar una extensión
-app.put('/extensiones/:id', async (req, res) => {
-  const { id } = req.params;
-  const { numero, nombre, puesto, sucursal } = req.body;
-  try {
-    const extensionModificada = await client.query(`
-      UPDATE Extension
-      FILTER .id = <uuid>$id
-      SET {
-        numero := <str>$numero,
-        nombre := <str>$nombre,
-        puesto := <str>$puesto,
-        sucursal := <str>$sucursal
-      }
-      RETURNING Extension {
-        id,
-        numero,
-        nombre,
-        puesto,
-        sucursal
-      }
-    `, { id, numero, nombre, puesto, sucursal });
-
-    res.json(extensionModificada);
-  } catch (error) {
-    console.error("Error al modificar la extensión:", error);
-    res.status(500).send("Error al modificar la extensión");
-  }
+app.put("/api/editar", async (req, res) => {
+  const { sucursal, extension, nombre, puesto, nuevaExtension } = req.query;
+  await editarExtension(extension, nombre, puesto, nuevaExtension, sucursal);
+  res.status(200).send();
 });
 
-// Ruta para eliminar una extensión
-app.delete('/extensiones/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    await client.query(`
-      DELETE Extension
-      FILTER .id = <uuid>$id
-    `, { id });
-
-    res.status(204).send();
-  } catch (error) {
-    console.error("Error al eliminar la extensión:", error);
-    res.status(500).send("Error al eliminar la extensión");
-  }
+app.delete("/api/eliminar", async (req, res) => {
+  const { sucursal, extension } = req.query;
+  await eliminarExtension(extension, sucursal);
+  res.status(200).send();
 });
 
-// Configuración del servidor
+// Puerto de la aplicación
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor en funcionamiento en el puerto ${PORT}`);
+  console.log(`Server listening on port ${PORT}`);
 });
