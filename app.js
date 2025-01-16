@@ -21,8 +21,7 @@ async function cargarExtensiones(sucursal) {
     }
     FILTER .sucursal = <str>$sucursal;
   `;
-  const extensiones = await client.query(query, { sucursal });
-  return extensiones;
+  return await client.query(query, { sucursal });
 }
 
 async function agregarExtension(nombre, puesto, extension, sucursal) {
@@ -60,27 +59,47 @@ async function eliminarExtension(extension, sucursal) {
 
 // Rutas de la API
 app.get("/api/extensiones", async (req, res) => {
-  const sucursal = req.query.sucursal;
-  const extensiones = await cargarExtensiones(sucursal);
-  res.json(extensiones);
+  try {
+    const sucursal = req.query.sucursal;
+    const extensiones = await cargarExtensiones(sucursal);
+    res.json(extensiones);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error al cargar extensiones");
+  }
 });
 
 app.post("/api/agregar", async (req, res) => {
-  const { nombre, puesto, extension, sucursal } = req.body;
-  await agregarExtension(nombre, puesto, extension, sucursal);
-  res.status(201).send();
+  try {
+    const { nombre, puesto, extension, sucursal } = req.body;
+    await agregarExtension(nombre, puesto, extension, sucursal);
+    res.status(201).send("Extension agregada correctamente");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error al agregar la extensión");
+  }
 });
 
 app.put("/api/editar", async (req, res) => {
-  const { sucursal, extension, nombre, puesto, nuevaExtension } = req.query;
-  await editarExtension(extension, nombre, puesto, nuevaExtension, sucursal);
-  res.status(200).send();
+  try {
+    const { sucursal, extension, nombre, puesto, nuevaExtension } = req.body;
+    await editarExtension(extension, nombre, puesto, nuevaExtension, sucursal);
+    res.status(200).send("Extension modificada correctamente");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error al editar la extensión");
+  }
 });
 
 app.delete("/api/eliminar", async (req, res) => {
-  const { sucursal, extension } = req.query;
-  await eliminarExtension(extension, sucursal);
-  res.status(200).send();
+  try {
+    const { sucursal, extension } = req.query;
+    await eliminarExtension(extension, sucursal);
+    res.status(200).send("Extension eliminada correctamente");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error al eliminar la extensión");
+  }
 });
 
 // Puerto de la aplicación
