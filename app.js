@@ -1,43 +1,110 @@
-import express from "express";
-import * as edgedb from "edgedb";
+import express from 'express';
+import { createClient } from '@supabase/supabase-js';
 
-// Crear cliente de EdgeDB
-const client = edgedb.createClient({
-  instanceName: "vercel-rlyXL34RVAZWwkWRjRviDVgB/edgedb-green-tree",
-  secretKey: "nbwt1_eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlZGIuZC5hbGwiOnRydWUsImVkYi5pIjpbInZlcmNlbC1ybHlYTDM0UlZBWld3a1dSalJ2aURWZ0IvZWRnZWRiLWdyZWVuLXRyZWUiXSwiZWRiLnIuYWxsIjp0cnVlLCJpYXQiOjE3MzY5OTExMjAsImlzcyI6ImF3cy5lZGdlZGIuY2xvdWQiLCJqdGkiOiJyb3p4UnRPcEVlLXdla181Q0J2aEpnIiwic3ViIjoicmtMU0FOT3BFZS1kRUVQaTRpMnQ0ZyJ9.Hp9iyOkrNtvuRxK4GvucJW7FIGWDY4cCaxqR-khwgpgLjh74MJyCZlE1N3KEbARjLQxFgEVTN-QIb2CrT0v0_g"
-});
+// Crear cliente de Supabase
+const supabase = createClient(
+  'https://fgeuiluxxfnwjszvjnoi.supabase.co',  // URL de tu proyecto Supabase
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnZXVpbHV4eGZud2pzenZqbm9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5OTgwODMsImV4cCI6MjA1MjU3NDA4M30.UE8KQgGD59-VUrSFpp5kChinQJmlxQG3izUwehzPquQ'  // Tu clave API
+);
 
 // Configurar express
 const app = express();
 app.use(express.json());
 
-// Función para agregar extensión
-async function agregarExtension(nombre, puesto, extension, sucursal) {
-  try {
-    const query = `
-      INSERT Extensiones {
-        nombre := <str>$nombre,
-        puesto := <str>$puesto,
-        extension := <str>$extension,
-        sucursal := <str>$sucursal
-      };
-    `;
-    await client.query(query, { nombre, puesto, extension, sucursal });
-    console.log("Extensión agregada correctamente");
-  } catch (err) {
-    console.error("Error al agregar extensión:", err);
-    throw new Error("No se pudo agregar la extensión");
+// Funciones de Supabase para CRUD
+async function cargarExtensiones(sucursal) {
+  const { data, error } = await supabase
+    .from('extensiones') // Nombre de la tabla
+    .select('nombre, puesto, extension')
+    .eq('sucursal', sucursal); // Filtrar por sucursal
+
+  if (error) {
+    throw error;
   }
+  return data;
 }
 
-// Ruta para agregar extensión
-app.post("/api/agregar", async (req, res) => {
-  const { nombre, puesto, extension, sucursal } = req.body;
+async function agregarExtension(nombre, puesto, extension, sucursal) {
+  const { data, error } = await supabase
+    .from('extensiones')  // Nombre de la tabla
+    .insert([
+      { nombre, puesto, extension, sucursal }
+    ]);
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+async function editarExtension(extension, sucursal, nuevaExtension, nombre, puesto) {
+  const { data, error } = await supabase
+    .from('extensiones')  // Nombre de la tabla
+    .update({ 
+      extension: nuevaExtension, 
+      nombre, 
+      puesto
+    })
+    .eq('extension', extension)
+    .eq('sucursal', sucursal);
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+async function eliminarExtension(extension, sucursal) {
+  const { data, error } = await supabase
+    .from('extensiones')  // Nombre de la tabla
+    .delete()
+    .eq('extension', extension)
+    .eq('sucursal', sucursal);
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+// Rutas de la API
+app.get("/api/extensiones", async (req, res) => {
   try {
+    const sucursal = req.query.sucursal;
+    const extensiones = await cargarExtensiones(sucursal);
+    res.json(extensiones);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/agregar", async (req, res) => {
+  try {
+    const { nombre, puesto, extension, sucursal } = req.body;
     await agregarExtension(nombre, puesto, extension, sucursal);
-    res.status(201).send("Extensión agregada correctamente");
-  } catch (err) {
-    res.status(500).send("Error al agregar la extensión");
+    res.status(201).send();
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put("/api/editar", async (req, res) => {
+  try {
+    const { sucursal, extension, nombre, puesto, nuevaExtension } = req.body;
+    await editarExtension(extension, sucursal, nuevaExtension, nombre, puesto);
+    res.status(200).send();
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete("/api/eliminar", async (req, res) => {
+  try {
+    const { sucursal, extension } = req.body;
+    await eliminarExtension(extension, sucursal);
+    res.status(200).send();
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
