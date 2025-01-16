@@ -31,7 +31,7 @@
 
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const registerButton = document.getElementById('registerButton');
@@ -39,16 +39,33 @@
             // Deshabilitar el botón de registro para prevenir múltiples clics
             registerButton.disabled = true;
 
-            const { error } = await supabaseClient.auth.signUp({ email, password });
+            // Registro en la autenticación de Supabase
+            const { data, error: authError } = await supabaseClient.auth.signUp({
+                email,
+                password
+            });
 
-            if (error) {
-                alert('Error al registrarse: ' + error.message);
+            if (authError) {
+                alert('Error al registrarse: ' + authError.message);
+                registerButton.disabled = false;
+                return;
+            }
+
+            // Guardar el usuario en la tabla 'usuarios' después del registro en autenticación
+            const { error: insertError } = await supabaseClient
+                .from('usuarios')
+                .insert([
+                    { email: email, password: password }
+                ]);
+
+            if (insertError) {
+                alert('Error al guardar en la base de datos: ' + insertError.message);
             } else {
                 alert('Registro exitoso');
                 window.location.href = 'login.html';
             }
 
-            // Volver a habilitar el botón de registro después de completar el proceso
+            // Volver a habilitar el botón después de completar el proceso
             registerButton.disabled = false;
         });
     </script>
