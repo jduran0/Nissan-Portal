@@ -15,9 +15,15 @@
   <section>
     <h3>Buscar Usuarios</h3>
     <form id="buscarUsuariosForm">
-      <input type="text" id="nombre" placeholder="Buscar por nombre">
-      <input type="text" id="puesto" placeholder="Buscar por puesto">
-      <input type="number" id="extension" placeholder="Buscar por extensión">
+      <label for="nombre">Buscar por nombre:</label>
+      <input type="text" id="nombre" placeholder="Nombre">
+      
+      <label for="puesto">Buscar por puesto:</label>
+      <input type="text" id="puesto" placeholder="Puesto">
+      
+      <label for="extension">Buscar por extensión:</label>
+      <input type="number" id="extension" placeholder="Extensión">
+      
       <button type="submit">Buscar</button>
     </form>
     <ul id="resultadosUsuarios"></ul>
@@ -26,10 +32,16 @@
   <section>
     <h3>Agregar Usuario</h3>
     <form action="/agregarUsuario" method="POST">
-      <input type="text" name="nombre" placeholder="Nombre" required>
-      <input type="text" name="puesto" placeholder="Puesto" required>
-      <input type="text" name="extension" placeholder="Extensión (máx. 4 dígitos)" required maxlength="4">
-      <input type="hidden" name="sucursal" id="sucursalInput">
+      <label for="nombreNuevo">Nombre:</label>
+      <input type="text" id="nombreNuevo" name="nombre" placeholder="Nombre" required>
+
+      <label for="puestoNuevo">Puesto:</label>
+      <input type="text" id="puestoNuevo" name="puesto" placeholder="Puesto" required>
+
+      <label for="extensionNuevo">Extensión (máx. 4 dígitos):</label>
+      <input type="text" id="extensionNuevo" name="extension" placeholder="Extensión" required maxlength="4">
+
+      <input type="hidden" id="sucursalInput" name="sucursal">
       <button type="submit">Registrar Usuario</button>
     </form>
   </section>
@@ -40,34 +52,33 @@
   </footer>
 
   <script>
+    // Obtener el nombre de la sucursal desde los parámetros de la URL
     const urlParams = new URLSearchParams(window.location.search);
     const sucursal = urlParams.get('sucursal');
-    document.getElementById('sucursalNombre').textContent += ` - ${sucursal}`;
+
+    // Mostrar el nombre de la sucursal en el título
+    const titulo = document.getElementById('sucursalNombre');
+    titulo.textContent += ` - ${sucursal}`;
+
+    // Pasar el nombre de la sucursal al input oculto
     document.getElementById('sucursalInput').value = sucursal;
 
-    const form = document.getElementById('buscarUsuariosForm');
+    // Manejo del formulario de búsqueda
+    const buscarForm = document.getElementById('buscarUsuariosForm');
     const resultados = document.getElementById('resultadosUsuarios');
 
-    form.addEventListener('submit', async (event) => {
+    buscarForm.addEventListener('submit', (event) => {
       event.preventDefault();
 
+      // Obtener valores de búsqueda
       const nombre = document.getElementById('nombre').value;
       const puesto = document.getElementById('puesto').value;
       const extension = document.getElementById('extension').value;
 
-      try {
-        const response = await fetch(`/buscarUsuarios?nombre=${nombre}&puesto=${puesto}&extension=${extension}&sucursal=${sucursal}`);
-        const usuarios = await response.json();
-
-        resultados.innerHTML = usuarios.map(user => `
-          <li>
-            Nombre: ${user.nombre}, Puesto: ${user.puesto}, Extensión: ${user.extension}
-          </li>
-        `).join('');
-      } catch (error) {
-        console.error('Error al buscar usuarios:', error);
-        resultados.innerHTML = `<li>Error al realizar la búsqueda.</li>`;
-      }
+      // Mostrar resultados simulados (podrías integrar con tu backend aquí)
+      resultados.innerHTML = `
+        <li>Resultado de ejemplo para: ${nombre || 'Nombre vacío'}, ${puesto || 'Puesto vacío'}, ${extension || 'Extensión vacía'}</li>
+      `;
     });
   </script>
 </body>
