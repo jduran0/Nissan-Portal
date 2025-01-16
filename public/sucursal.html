@@ -21,7 +21,7 @@
         </div>
 
         <h1 id="sucursalTitle" class="text-3xl font-bold mb-8"></h1>
-        
+
         <!-- Barra de búsqueda -->
         <div class="bg-white p-6 rounded-lg shadow-md mb-8">
             <div class="flex gap-4 items-end">
@@ -65,22 +65,26 @@
                     <label class="block text-sm font-medium text-gray-700">Extensión (4 dígitos)</label>
                     <input type="text" id="extension" required pattern="\d{4}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Agregar</button>
+                <div>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Agregar Extensión</button>
+                </div>
             </form>
         </div>
 
         <!-- Tabla de extensiones -->
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <table class="min-w-full text-sm text-gray-500">
+                <thead>
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Puesto</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Extensión</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                        <th class="px-6 py-4 text-left">Nombre</th>
+                        <th class="px-6 py-4 text-left">Puesto</th>
+                        <th class="px-6 py-4 text-left">Extensión</th>
+                        <th class="px-6 py-4 text-center">Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="extensionesTable" class="bg-white divide-y divide-gray-200"></tbody>
+                <tbody id="extensionesTable">
+                    <!-- Se insertarán las filas dinámicamente -->
+                </tbody>
             </table>
         </div>
     </div>
@@ -131,128 +135,56 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <button onclick="editarExtension('${ext.id}')" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
-                                  <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.5.5 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11z"/>
+                                  <path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5v-.5h-.5a.5.5 0 0 1-.5-.5v-.5h-.5a.5.5 0 0 1-.5-.5z"/>
                                 </svg>
                             </button>
-                            <button onclick="guardarExtension('${ext.id}')" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 hidden" id="guardar-${ext.id}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy2" viewBox="0 0 16 16">
-                                    <path d="M1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13A1.5 1.5 0 0 1 1.5 0M1 1.5v13a.5.5 0 0 0 .5.5H2v-4.5A1.5 1.5 0 0 1 3.5 9h9a1.5 1.5 0 0 1 1.5 1.5V15h.5a.5.5 0 0 0 .5-.5V2.914a.5.5 0 0 0-.146-.353l-1.415-1.415A.5.5 0 0 0 13.086 1H13v3.5A1.5 1.5 0 0 1 11.5 6h-7A1.5 1.5 0 0 1 3 4.5V1H1.5a.5.5 0 0 0-.5.5m9.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5z"/>
-                                </svg>
-                            </button>
-                              <button onclick="eliminarExtension('${ext.id}')" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
-                                      <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"/>
-                                    </svg>
-                                </button>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
             }
 
-            // Función de editar
-            window.editarExtension = function(id) {
-                document.getElementById(`nombre-${id}`).disabled = false;
-                document.getElementById(`puesto-${id}`).disabled = false;
-                document.getElementById(`extension-${id}`).disabled = false;
-                document.getElementById(`guardar-${id}`).classList.remove('hidden');
-            };
-
-            // Función de guardar
-            window.guardarExtension = async function(id) {
-                const nombre = document.getElementById(`nombre-${id}`).value;
-                const puesto = document.getElementById(`puesto-${id}`).value;
-                const extension = document.getElementById(`extension-${id}`).value;
-
-                if (!/^\d{4}$/.test(extension)) {
-                    alert('La extensión debe tener 4 dígitos');
-                    return;
-                }
-
-                try {
-                    const { error } = await supabaseClient
-                        .from('extensiones')
-                        .update({ nombre, puesto, extension })
-                        .match({ id });
-
-                    if (error) throw error;
-                    document.getElementById(`nombre-${id}`).disabled = true;
-                    document.getElementById(`puesto-${id}`).disabled = true;
-                    document.getElementById(`extension-${id}`).disabled = true;
-                    document.getElementById(`guardar-${id}`).classList.add('hidden');
-                    await cargarExtensiones();
-                } catch (error) {
-                    console.error('Error al guardar extensión:', error);
-                    alert('Error al guardar extensión: ' + error.message);
-                }
-                document.getElementById(`nombre-${id}`).value = "";
-            };
-
-            // Función de eliminar
-            window.eliminarExtension = async function(id) {
-                try {
-                    const { error } = await supabaseClient
-                        .from('extensiones')
-                        .delete()
-                        .match({ id });
-
-                    if (error) throw error;
-                    await cargarExtensiones();
-                } catch (error) {
-                    console.error('Error al eliminar extensión:', error);
-                    alert('Error al eliminar extensión: ' + error.message);
-                }
-            };
-
-            // Cargar las extensiones cuando se inicia la página
-            async function cargarExtensiones() {
-                try {
-                    const { data, error } = await supabaseClient
-                        .from('extensiones')
-                        .select('*')
-                        .eq('sucursal', sucursal);
-
-                    if (error) throw error;
-                    allExtensions = data;
+            // Cargar extensiones desde Supabase
+            supabaseClient.from('extensiones').select('*')
+                .eq('sucursal', sucursal)
+                .then(response => {
+                    allExtensions = response.data;
                     updateTable(allExtensions);
-                } catch (error) {
-                    console.error('Error al cargar extensiones:', error);
-                    alert('Error al cargar extensiones: ' + error.message);
-                }
-            }
+                });
 
-            // Agregar extensión
-            document.getElementById('extensionForm').addEventListener('submit', async function(event) {
-                event.preventDefault();
-
-                const nombre = document.getElementById('nombre').value;
-                const puesto = document.getElementById('puesto').value;
-                const extension = document.getElementById('extension').value;
-
-                try {
-                    const { error } = await supabaseClient
-                        .from('extensiones')
-                        .insert([{ nombre, puesto, extension, sucursal }]);
-
-                    if (error) throw error;
-                    await cargarExtensiones();
-                } catch (error) {
-                    console.error('Error al agregar extensión:', error);
-                    alert('Error al agregar extensión: ' + error.message);
-                }
+            // Buscar y filtrar según entrada
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                const searchValue = e.target.value;
+                const filterType = document.getElementById('searchType').value;
+                const filtered = filterExtensions(searchValue, filterType);
+                updateTable(filtered);
             });
 
-            // Buscar extensiones cuando se cambia el texto
-            document.getElementById('searchInput').addEventListener('input', function() {
-                const searchText = this.value;
-                const searchType = document.getElementById('searchType').value;
-                const filteredExtensions = filterExtensions(searchText, searchType);
-                updateTable(filteredExtensions);
-            });
+            // Manejar el formulario de agregar extensión
+            document.getElementById('extensionForm').addEventListener('submit', function(e) {
+                e.preventDefault();
 
-            // Cargar las extensiones cuando se inicia la página
-            cargarExtensiones();
+                const newExtension = {
+                    nombre: document.getElementById('nombre').value,
+                    puesto: document.getElementById('puesto').value,
+                    extension: document.getElementById('extension').value,
+                    sucursal: sucursal,
+                };
+
+                supabaseClient.from('extensiones').insert([newExtension]).then(response => {
+                    allExtensions.push(response.data[0]);
+                    updateTable(allExtensions);
+                    e.target.reset();
+                });
+            });
         });
+
+        // Función para editar una extensión
+        function editarExtension(id) {
+            document.getElementById(`nombre-${id}`).disabled = false;
+            document.getElementById(`puesto-${id}`).disabled = false;
+            document.getElementById(`extension-${id}`).disabled = false;
+        }
     </script>
 </body>
 </html>
