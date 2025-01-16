@@ -19,7 +19,7 @@
                 <label class="block text-sm font-medium text-gray-700">Contraseña</label>
                 <input type="password" id="password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
             </div>
-            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-full">Iniciar Sesión</button>
+            <button id="loginButton" type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-full">Iniciar Sesión</button>
         </form>
     </div>
 
@@ -30,18 +30,61 @@
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log("Formulario de login enviado");
+
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            // Intentamos iniciar sesión con las credenciales
-            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            const loginButton = document.getElementById('loginButton');
+            loginButton.disabled = true;
 
-            if (error) {
-                alert('Error al iniciar sesión: ' + error.message);
-            } else {
+            try {
+                // Intentar iniciar sesión con Supabase Auth
+                const { data, error: authError } = await supabaseClient.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                console.log("Respuesta de supabase.auth.signInWithPassword:", { data, authError });
+
+                if (authError) {
+                    alert('Error al iniciar sesión: ' + authError.message);
+                    loginButton.disabled = false;
+                    return;
+                }
+
+                // Verificar que el usuario también esté registrado en la tabla 'usuarios'
+                const { data: usuarios, error: usuariosError } = await supabaseClient
+                    .from('usuarios')
+                    .select('*')
+                    .eq('email', email)  // Compara el correo en la tabla
+                    .eq('password', password);  // Compara la contraseña en la tabla
+
+                console.log("Respuesta de la consulta a la tabla 'usuarios':", { usuarios, usuariosError });
+
+                if (usuariosError) {
+                    alert('Error al verificar usuario en la base de datos: ' + usuariosError.message);
+                    loginButton.disabled = false;
+                    return;
+                }
+
+                if (usuarios.length === 0) {
+                    alert('El usuario no está registrado en la base de datos.');
+                    loginButton.disabled = false;
+                    return;
+                }
+
+                // Si llega hasta aquí, iniciar sesión correctamente
                 alert('Sesión iniciada correctamente');
-                window.location.href = 'index.html';  // Redirigir a la página principal después del login
+                window.location.href = 'index.html';
+
+            } catch (error) {
+                console.error("Error inesperado:", error);
+                alert('Hubo un error inesperado');
             }
+
+            // Volver a habilitar el botón después de completar el proceso
+            loginButton.disabled = false;
         });
     </script>
 </body>
