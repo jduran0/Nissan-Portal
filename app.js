@@ -1,157 +1,135 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const supabaseUrl = 'https://fgeuiluxxfnwjszvjnoi.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnZXVpbHV4eGZud2pzenZqbm9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5OTgwODMsImV4cCI6MjA1MjU3NDA4M30.UE8KQgGD59-VUrSFpp5kChinQJmlxQG3izUwehzPquQ' // Tu clave API
-    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+import express from 'express';
+import { createClient } from '@supabase/supabase-js';
 
-    // Obtener sucursal de la URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const sucursal = urlParams.get('sucursal');
-    document.getElementById('sucursalTitle').textContent = sucursal;
+// Crear cliente de Supabase
+const supabase = createClient(
+  'https://fgeuiluxxfnwjszvjnoi.supabase.co', // URL de tu proyecto Supabase
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnZXVpbHV4eGZud2pzenZqbm9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5OTgwODMsImV4cCI6MjA1MjU3NDA4M30.UE8KQgGD59-VUrSFpp5kChinQJmlxQG3izUwehzPquQ' // Tu clave API
+);
 
-    // Cargar extensiones
-    async function cargarExtensiones() {
-        try {
-            const { data, error } = await supabaseClient
-                .from('extensiones')
-                .select('*')
-                .eq('sucursal', sucursal);
+// Configurar express
+const app = express();
+app.use(express.json());
 
-            if (error) throw error;
+// Funciones de Supabase para CRUD
 
-            const tbody = document.getElementById('extensionesTable');
-            tbody.innerHTML = '';
+// Cargar extensiones por sucursal
+async function cargarExtensiones(sucursal) {
+  const { data, error } = await supabase
+    .from('extensiones') // Nombre de la tabla
+    .select('id, nombre, puesto, extension, sucursal')
+    .eq('sucursal', sucursal); // Filtrar por sucursal
 
-            data.forEach(ext => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="px-6 py-4">${ext.nombre}</td>
-                    <td class="px-6 py-4">${ext.puesto}</td>
-                    <td class="px-6 py-4">${ext.extension}</td>
-                    <td class="px-6 py-4">
-                        <button onclick="editarExtension('${ext.id}')" class="text-blue-600 hover:text-blue-900">Editar</button>
-                        <button onclick="eliminarExtension('${ext.id}')" class="text-red-600 hover:text-red-900">Eliminar</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        } catch (error) {
-            console.error('Error al cargar las extensiones:', error);
-            alert('Error al cargar las extensiones: ' + error.message);
-        }
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+// Agregar una nueva extensión
+async function agregarExtension(nombre, puesto, extension, sucursal) {
+  const { data, error } = await supabase
+    .from('extensiones')  // Nombre de la tabla
+    .insert([{ nombre, puesto, extension, sucursal }]);
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+// Editar una extensión existente
+async function editarExtension(extension, sucursal, nuevaExtension, nombre, puesto) {
+  const { data, error } = await supabase
+    .from('extensiones')  // Nombre de la tabla
+    .update({ 
+      extension: nuevaExtension, 
+      nombre, 
+      puesto
+    })
+    .eq('extension', extension)
+    .eq('sucursal', sucursal);
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+// Eliminar una extensión por su extensión y sucursal
+async function eliminarExtension(extension, sucursal) {
+  const { data, error } = await supabase
+    .from('extensiones')  // Nombre de la tabla
+    .delete()
+    .eq('extension', extension)
+    .eq('sucursal', sucursal);
+
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+// Rutas de la API
+
+// Leer todas las extensiones de una sucursal
+app.get('/api/extensiones', async (req, res) => {
+  try {
+    const sucursal = req.query.sucursal;  // Obtener la sucursal del query
+    if (!sucursal) {
+      return res.status(400).json({ error: "La sucursal es obligatoria." });
     }
+    const extensiones = await cargarExtensiones(sucursal);
+    res.json(extensiones);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-    // Función de editar extensión
-    window.editarExtension = function(id) {
-        // Cargar la extensión para editarla
-        const extension = document.getElementById('extensionesTable').querySelector(`button[onclick="editarExtension('${id}')"]`).parentElement.parentElement;
-
-        const nombre = extension.children[0].textContent;
-        const puesto = extension.children[1].textContent;
-        const ext = extension.children[2].textContent;
-
-        // Rellenar los campos con los datos actuales
-        document.getElementById('nombre').value = nombre;
-        document.getElementById('puesto').value = puesto;
-        document.getElementById('extension').value = ext;
-
-        // Cambiar el botón para guardar
-        const btnGuardar = document.querySelector('#extensionForm button');
-        btnGuardar.textContent = 'Actualizar';
-
-        // Manejar la acción de actualizar
-        document.getElementById('extensionForm').onsubmit = async function(e) {
-            e.preventDefault(); // Evita que el formulario recargue la página
-            const nombreNuevo = document.getElementById('nombre').value;
-            const puestoNuevo = document.getElementById('puesto').value;
-            const extensionNueva = document.getElementById('extension').value;
-
-            if (!nombreNuevo || !puestoNuevo || !extensionNueva) {
-                alert('Por favor, complete todos los campos');
-                return;
-            }
-            if (!/^\d{4}$/.test(extensionNueva)) {
-                alert('La extensión debe tener 4 dígitos');
-                return;
-            }
-
-            try {
-                const { error } = await supabaseClient
-                    .from('extensiones')
-                    .update({ nombre: nombreNuevo, puesto: puestoNuevo, extension: extensionNueva })
-                    .eq('id', id);
-
-                if (error) throw error;
-
-                alert('Extensión actualizada correctamente');
-                // Recargar lista de extensiones
-                await cargarExtensiones();
-
-                // Limpiar formulario y cambiar botón a guardar nuevamente
-                e.target.reset();
-                btnGuardar.textContent = 'Guardar';
-                document.getElementById('extensionForm').onsubmit = guardarExtension;
-            } catch (error) {
-                console.error('Error al actualizar extensión:', error);
-                alert('Error al actualizar extensión: ' + error.message);
-            }
-        };
-    };
-
-    // Función de guardar nueva extensión
-    async function guardarExtension(e) {
-        e.preventDefault();
-        const nombre = document.getElementById('nombre').value;
-        const puesto = document.getElementById('puesto').value;
-        const extension = document.getElementById('extension').value;
-
-        if (!nombre || !puesto || !extension) {
-            alert('Por favor, complete todos los campos');
-            return;
-        }
-        if (!/^\d{4}$/.test(extension)) {
-            alert('La extensión debe tener 4 dígitos');
-            return;
-        }
-
-        try {
-            // Inserta la nueva extensión
-            const { error } = await supabaseClient
-                .from('extensiones')
-                .insert([{ nombre, puesto, extension, sucursal }]);
-
-            if (error) throw error;
-
-            alert('Extensión añadida correctamente');
-            e.target.reset();
-            await cargarExtensiones();
-        } catch (error) {
-            console.error('Error al agregar extensión:', error);
-            alert('Error al agregar extensión: ' + error.message);
-        }
+// Agregar una nueva extensión
+app.post('/api/extensiones', async (req, res) => {
+  try {
+    const { nombre, puesto, extension, sucursal } = req.body;
+    if (!nombre || !puesto || !extension || !sucursal) {
+      return res.status(400).json({ error: "Faltan campos obligatorios." });
     }
+    const newExtension = await agregarExtension(nombre, puesto, extension, sucursal);
+    res.status(201).json(newExtension);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-    // Eliminar extensión
-    window.eliminarExtension = async function(id) {
-        if (!confirm('¿Estás seguro de eliminar esta extensión?')) return;
+// Actualizar una extensión
+app.put('/api/extensiones', async (req, res) => {
+  try {
+    const { sucursal, extension, nombre, puesto, nuevaExtension } = req.body;
+    if (!sucursal || !extension || !nombre || !puesto || !nuevaExtension) {
+      return res.status(400).json({ error: "Faltan campos obligatorios." });
+    }
+    const updatedExtension = await editarExtension(extension, sucursal, nuevaExtension, nombre, puesto);
+    res.status(200).json(updatedExtension);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-        try {
-            const { error } = await supabaseClient
-                .from('extensiones')
-                .delete()
-                .eq('id', id);
+// Eliminar una extensión
+app.delete('/api/extensiones', async (req, res) => {
+  try {
+    const { sucursal, extension } = req.body;
+    if (!sucursal || !extension) {
+      return res.status(400).json({ error: "Faltan campos obligatorios." });
+    }
+    const deletedExtension = await eliminarExtension(extension, sucursal);
+    res.status(200).json(deletedExtension);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-            if (error) throw error;
-
-            await cargarExtensiones();
-        } catch (error) {
-            console.error('Error al eliminar extensión:', error);
-            alert('Error al eliminar extensión: ' + error.message);
-        }
-    };
-
-    // Inicializar el cargado de extensiones
-    cargarExtensiones();
-
-    // Manejo del formulario para crear nueva extensión
-    document.getElementById('extensionForm').onsubmit = guardarExtension;
+// Puerto de la aplicación
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
 });
