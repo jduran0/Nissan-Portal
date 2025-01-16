@@ -30,7 +30,6 @@
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            console.log("Formulario de login enviado");
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -39,28 +38,11 @@
             loginButton.disabled = true;
 
             try {
-                // Intentar iniciar sesión con Supabase Auth
-                const { data, error: authError } = await supabaseClient.auth.signInWithPassword({
-                    email,
-                    password
-                });
-
-                console.log("Respuesta de supabase.auth.signInWithPassword:", { data, authError });
-
-                if (authError) {
-                    alert('Error al iniciar sesión: ' + authError.message);
-                    loginButton.disabled = false;
-                    return;
-                }
-
-                // Verificar si el usuario existe en la tabla 'usuarios' 
-                // No necesitamos la contraseña aquí, solo el correo
+                // Primero verificamos si el correo existe en la tabla usuarios
                 const { data: usuarios, error: usuariosError } = await supabaseClient
                     .from('usuarios')
-                    .select('*')
-                    .eq('email', email);  // Compara el correo en la tabla
-
-                console.log("Respuesta de la consulta a la tabla 'usuarios':", { usuarios, usuariosError });
+                    .select('email, password') // Queremos obtener el email y la contraseña
+                    .eq('email', email);  // Comparamos por email
 
                 if (usuariosError) {
                     alert('Error al verificar usuario en la base de datos: ' + usuariosError.message);
@@ -74,16 +56,25 @@
                     return;
                 }
 
-                // Si llega hasta aquí, iniciar sesión correctamente
+                // Ahora, comparamos la contraseña proporcionada con la que está en la tabla
+                const storedPassword = usuarios[0].password;
+
+                if (password !== storedPassword) {
+                    alert('Credenciales incorrectas.');
+                    loginButton.disabled = false;
+                    return;
+                }
+
+                // Si las credenciales son correctas, entonces iniciamos sesión (simulación en la misma app)
                 alert('Sesión iniciada correctamente');
-                window.location.href = 'index.html';
+                window.location.href = 'index.html'; // Redirigimos al usuario a la página principal (ajusta según tu flujo)
 
             } catch (error) {
-                console.error("Error inesperado:", error);
-                alert('Hubo un error inesperado');
+                console.error('Error al iniciar sesión:', error);
+                alert('Hubo un error inesperado.');
             }
 
-            // Volver a habilitar el botón después de completar el proceso
+            // Volver a habilitar el botón
             loginButton.disabled = false;
         });
     </script>
