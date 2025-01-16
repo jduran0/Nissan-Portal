@@ -13,6 +13,7 @@
   </header>
 
   <main class="extensiones-container">
+    <button onclick="window.location.href='index.html'">Regresar a Inicio</button> <!-- Botón para regresar -->
     <div>
       <button onclick="mostrarFormularioAgregar()">Agregar Extensión</button>
       <h3>Filtrar por:</h3>
@@ -34,7 +35,7 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Aquí se cargarán las filas con datos -->
+        <!-- Aquí se cargarán las filas con datos dinámicos -->
       </tbody>
     </table>
 
@@ -61,39 +62,55 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const sucursal = params.get('sucursal');
-
     document.getElementById("tituloSucursal").textContent = sucursal || "Sucursal No Encontrada";
 
-    // Aquí debes agregar el código para mostrar las extensiones de la sucursal
+    // Función para cargar las extensiones desde el servidor
     async function cargarExtensiones() {
-      // Simulación de extensiones
-      const extensiones = [
-        { nombre: 'Carlos Pérez', puesto: 'Gerente', extension: '101' },
-        { nombre: 'Ana López', puesto: 'Secretaria', extension: '102' },
-        { nombre: 'José García', puesto: 'Vendedor', extension: '103' }
-      ];
-
-      const tabla = document.getElementById('tablaExtensiones').getElementsByTagName('tbody')[0];
-      extensiones.forEach(extension => {
-        const fila = tabla.insertRow();
-        fila.innerHTML = `
-          <td>${extension.nombre}</td>
-          <td>${extension.puesto}</td>
-          <td>${extension.extension}</td>
-          <td>
-            <button onclick="editarExtension('${extension.extension}')">Editar</button>
-            <button onclick="eliminarExtension('${extension.extension}')">Eliminar</button>
-          </td>
-        `;
-      });
+      try {
+        const response = await fetch(`/api/extensiones?sucursal=${sucursal}`);
+        const extensiones = await response.json();
+        
+        const tabla = document.getElementById('tablaExtensiones').getElementsByTagName('tbody')[0];
+        tabla.innerHTML = ''; // Limpiar tabla antes de insertar nuevas filas
+        
+        extensiones.forEach(extension => {
+          const fila = tabla.insertRow();
+          fila.innerHTML = `
+            <td>${extension.nombre}</td>
+            <td>${extension.puesto}</td>
+            <td>${extension.extension}</td>
+            <td>
+              <button onclick="editarExtension('${extension._id}')">Editar</button>
+              <button onclick="eliminarExtension('${extension._id}')">Eliminar</button>
+            </td>
+          `;
+        });
+      } catch (error) {
+        console.error('Error al cargar las extensiones:', error);
+      }
     }
 
     // Función para agregar nuevas extensiones
-    document.getElementById("formNuevoUsuario").addEventListener("submit", (e) => {
+    document.getElementById("formNuevoUsuario").addEventListener("submit", async (e) => {
       e.preventDefault();
-      // Lógica para enviar los datos al servidor y agregar la extensión
-      cargarExtensiones();
-      cancelarAgregar();
+
+      const nombre = document.getElementById("nombre").value;
+      const puesto = document.getElementById("puesto").value;
+      const extension = document.getElementById("extension").value;
+
+      // Enviar datos al servidor para agregar extensión
+      try {
+        await fetch('/api/extensiones', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sucursal, nombre, puesto, extension })
+        });
+
+        cargarExtensiones(); // Recargar las extensiones
+        cancelarAgregar();
+      } catch (error) {
+        console.error('Error al agregar extensión:', error);
+      }
     });
 
     function mostrarFormularioAgregar() {
@@ -125,7 +142,23 @@
       });
     }
 
-    // Llamada a cargar las extensiones al iniciar
+    // Función de editar extensión (ejemplo básico)
+    function editarExtension(id) {
+      console.log('Editar extensión', id);
+      // Lógica de edición aquí
+    }
+
+    // Función de eliminar extensión
+    async function eliminarExtension(id) {
+      try {
+        await fetch(`/api/extensiones/${id}`, { method: 'DELETE' });
+        cargarExtensiones(); // Recargar la lista
+      } catch (error) {
+        console.error('Error al eliminar la extensión:', error);
+      }
+    }
+
+    // Cargar las extensiones al iniciar la página
     cargarExtensiones();
   </script>
 </body>
