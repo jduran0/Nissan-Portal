@@ -9,77 +9,124 @@
 <body>
   <header>
     <h1>Gestión de Extensiones</h1>
-    <h2 id="sucursalNombre">Lista de Usuarios</h2>
+    <h2 id="tituloSucursal"></h2>
   </header>
 
-  <section>
-    <h3>Buscar Usuarios</h3>
-    <form id="buscarUsuariosForm">
-      <label for="nombre">Buscar por nombre:</label>
-      <input type="text" id="nombre" placeholder="Nombre">
-      
-      <label for="puesto">Buscar por puesto:</label>
-      <input type="text" id="puesto" placeholder="Puesto">
-      
-      <label for="extension">Buscar por extensión:</label>
-      <input type="number" id="extension" placeholder="Extensión">
-      
-      <button type="submit">Buscar</button>
-    </form>
-    <ul id="resultadosUsuarios"></ul>
-  </section>
+  <main class="extensiones-container">
+    <div>
+      <button onclick="mostrarFormularioAgregar()">Agregar Extensión</button>
+      <h3>Filtrar por:</h3>
+      <label for="filtroNombre">Nombre:</label>
+      <input type="text" id="filtroNombre" onkeyup="filtrarUsuarios()">
+      <label for="filtroPuesto">Puesto:</label>
+      <input type="text" id="filtroPuesto" onkeyup="filtrarUsuarios()">
+      <label for="filtroExtension">Extensión:</label>
+      <input type="text" id="filtroExtension" onkeyup="filtrarUsuarios()">
+    </div>
 
-  <section>
-    <h3>Agregar Usuario</h3>
-    <form action="/agregarUsuario" method="POST">
-      <label for="nombreNuevo">Nombre:</label>
-      <input type="text" id="nombreNuevo" name="nombre" placeholder="Nombre" required>
+    <table id="tablaExtensiones">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Puesto</th>
+          <th>Extensión</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Aquí se cargarán las filas con datos -->
+      </tbody>
+    </table>
 
-      <label for="puestoNuevo">Puesto:</label>
-      <input type="text" id="puestoNuevo" name="puesto" placeholder="Puesto" required>
-
-      <label for="extensionNuevo">Extensión (máx. 4 dígitos):</label>
-      <input type="text" id="extensionNuevo" name="extension" placeholder="Extensión" required maxlength="4">
-
-      <input type="hidden" id="sucursalInput" name="sucursal">
-      <button type="submit">Registrar Usuario</button>
-    </form>
-  </section>
+    <!-- Formulario para agregar extensión -->
+    <div id="formularioAgregar" style="display: none;">
+      <h3>Agregar Extensión</h3>
+      <form id="formNuevoUsuario">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" required>
+        <label for="puesto">Puesto:</label>
+        <input type="text" id="puesto" required>
+        <label for="extension">Extensión:</label>
+        <input type="text" id="extension" required maxlength="4">
+        <button type="submit">Guardar</button>
+        <button type="button" onclick="cancelarAgregar()">Cancelar</button>
+      </form>
+    </div>
+  </main>
 
   <footer>
-    <button onclick="history.back()">Regresar</button>
     <p>&copy; 2025 NISSAN Rancagua</p>
   </footer>
 
   <script>
-    // Obtener el nombre de la sucursal desde los parámetros de la URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const sucursal = urlParams.get('sucursal');
+    const params = new URLSearchParams(window.location.search);
+    const sucursal = params.get('sucursal');
 
-    // Mostrar el nombre de la sucursal en el título
-    const titulo = document.getElementById('sucursalNombre');
-    titulo.textContent += ` - ${sucursal}`;
+    document.getElementById("tituloSucursal").textContent = sucursal || "Sucursal No Encontrada";
 
-    // Pasar el nombre de la sucursal al input oculto
-    document.getElementById('sucursalInput').value = sucursal;
+    // Aquí debes agregar el código para mostrar las extensiones de la sucursal
+    async function cargarExtensiones() {
+      // Simulación de extensiones
+      const extensiones = [
+        { nombre: 'Carlos Pérez', puesto: 'Gerente', extension: '101' },
+        { nombre: 'Ana López', puesto: 'Secretaria', extension: '102' },
+        { nombre: 'José García', puesto: 'Vendedor', extension: '103' }
+      ];
 
-    // Manejo del formulario de búsqueda
-    const buscarForm = document.getElementById('buscarUsuariosForm');
-    const resultados = document.getElementById('resultadosUsuarios');
+      const tabla = document.getElementById('tablaExtensiones').getElementsByTagName('tbody')[0];
+      extensiones.forEach(extension => {
+        const fila = tabla.insertRow();
+        fila.innerHTML = `
+          <td>${extension.nombre}</td>
+          <td>${extension.puesto}</td>
+          <td>${extension.extension}</td>
+          <td>
+            <button onclick="editarExtension('${extension.extension}')">Editar</button>
+            <button onclick="eliminarExtension('${extension.extension}')">Eliminar</button>
+          </td>
+        `;
+      });
+    }
 
-    buscarForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-
-      // Obtener valores de búsqueda
-      const nombre = document.getElementById('nombre').value;
-      const puesto = document.getElementById('puesto').value;
-      const extension = document.getElementById('extension').value;
-
-      // Mostrar resultados simulados (podrías integrar con tu backend aquí)
-      resultados.innerHTML = `
-        <li>Resultado de ejemplo para: ${nombre || 'Nombre vacío'}, ${puesto || 'Puesto vacío'}, ${extension || 'Extensión vacía'}</li>
-      `;
+    // Función para agregar nuevas extensiones
+    document.getElementById("formNuevoUsuario").addEventListener("submit", (e) => {
+      e.preventDefault();
+      // Lógica para enviar los datos al servidor y agregar la extensión
+      cargarExtensiones();
+      cancelarAgregar();
     });
+
+    function mostrarFormularioAgregar() {
+      document.getElementById('formularioAgregar').style.display = 'block';
+    }
+
+    function cancelarAgregar() {
+      document.getElementById('formularioAgregar').style.display = 'none';
+      document.getElementById('formNuevoUsuario').reset();
+    }
+
+    function filtrarUsuarios() {
+      const nombre = document.getElementById("filtroNombre").value.toLowerCase();
+      const puesto = document.getElementById("filtroPuesto").value.toLowerCase();
+      const extension = document.getElementById("filtroExtension").value.toLowerCase();
+
+      const filas = document.querySelectorAll("#tablaExtensiones tbody tr");
+      filas.forEach(fila => {
+        const cols = fila.querySelectorAll("td");
+        const nombreCol = cols[0].textContent.toLowerCase();
+        const puestoCol = cols[1].textContent.toLowerCase();
+        const extensionCol = cols[2].textContent.toLowerCase();
+
+        if (nombreCol.includes(nombre) && puestoCol.includes(puesto) && extensionCol.includes(extension)) {
+          fila.style.display = "";
+        } else {
+          fila.style.display = "none";
+        }
+      });
+    }
+
+    // Llamada a cargar las extensiones al iniciar
+    cargarExtensiones();
   </script>
 </body>
 </html>
