@@ -53,12 +53,12 @@
                     return;
                 }
 
-                // Verificar que el usuario también esté registrado en la tabla 'usuarios'
+                // Verificar si el usuario existe en la tabla 'usuarios' 
+                // No necesitamos la contraseña aquí, solo el correo
                 const { data: usuarios, error: usuariosError } = await supabaseClient
                     .from('usuarios')
                     .select('*')
-                    .eq('email', email)  // Compara el correo en la tabla
-                    .eq('password', password);  // Compara la contraseña en la tabla
+                    .eq('email', email);  // Compara el correo en la tabla
 
                 console.log("Respuesta de la consulta a la tabla 'usuarios':", { usuarios, usuariosError });
 
