@@ -3,42 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Usuarios - NISSAN Rancagua</title>
+  <title>Gestión de Extensiones - Sucursal</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
-    <h1 id="sucursal-title">Gestión de Usuarios</h1>
-    <button onclick="goBack()">Regresar</button>
+    <h1>Gestión de Extensiones</h1>
+    <h2 id="sucursalNombre">Lista de Usuarios</h2>
   </header>
 
-  <main>
-    <section>
-      <h2>Buscar Usuarios</h2>
-      <form id="searchForm">
-        <input type="text" name="nombre" placeholder="Buscar por nombre">
-        <input type="text" name="puesto" placeholder="Buscar por puesto">
-        <input type="text" name="extension" placeholder="Buscar por extensión" maxlength="4">
-        <button type="submit">Buscar</button>
-      </form>
-      <ul id="resultList"></ul>
-    </section>
+  <section>
+    <h3>Buscar Usuarios</h3>
+    <form id="buscarUsuariosForm">
+      <input type="text" id="nombre" placeholder="Buscar por nombre">
+      <input type="text" id="puesto" placeholder="Buscar por puesto">
+      <input type="number" id="extension" placeholder="Buscar por extensión">
+      <button type="submit">Buscar</button>
+    </form>
+    <ul id="resultadosUsuarios"></ul>
+  </section>
 
-    <section>
-      <h2>Agregar Usuario</h2>
-      <form id="addForm">
-        <input type="text" name="nombre" placeholder="Nombre" required>
-        <input type="text" name="puesto" placeholder="Puesto" required>
-        <input type="number" name="extension" placeholder="Extensión (máx. 4 dígitos)" maxlength="4" required>
-        <button type="submit">Registrar Usuario</button>
-      </form>
-    </section>
-  </main>
+  <section>
+    <h3>Agregar Usuario</h3>
+    <form action="/agregarUsuario" method="POST">
+      <input type="text" name="nombre" placeholder="Nombre" required>
+      <input type="text" name="puesto" placeholder="Puesto" required>
+      <input type="text" name="extension" placeholder="Extensión (máx. 4 dígitos)" required maxlength="4">
+      <input type="hidden" name="sucursal" id="sucursalInput">
+      <button type="submit">Registrar Usuario</button>
+    </form>
+  </section>
 
   <footer>
+    <button onclick="history.back()">Regresar</button>
     <p>&copy; 2025 NISSAN Rancagua</p>
   </footer>
 
-  <script src="sucursal.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const sucursal = urlParams.get('sucursal');
+    document.getElementById('sucursalNombre').textContent += ` - ${sucursal}`;
+    document.getElementById('sucursalInput').value = sucursal;
+
+    const form = document.getElementById('buscarUsuariosForm');
+    const resultados = document.getElementById('resultadosUsuarios');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const nombre = document.getElementById('nombre').value;
+      const puesto = document.getElementById('puesto').value;
+      const extension = document.getElementById('extension').value;
+
+      try {
+        const response = await fetch(`/buscarUsuarios?nombre=${nombre}&puesto=${puesto}&extension=${extension}&sucursal=${sucursal}`);
+        const usuarios = await response.json();
+
+        resultados.innerHTML = usuarios.map(user => `
+          <li>
+            Nombre: ${user.nombre}, Puesto: ${user.puesto}, Extensión: ${user.extension}
+          </li>
+        `).join('');
+      } catch (error) {
+        console.error('Error al buscar usuarios:', error);
+        resultados.innerHTML = `<li>Error al realizar la búsqueda.</li>`;
+      }
+    });
+  </script>
 </body>
 </html>
