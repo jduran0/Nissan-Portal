@@ -1,57 +1,106 @@
-import express from "express";
-import * as edgedb from "edgedb";
+import express from 'express';
+import * as edgedb from 'edgedb'; // Importar EdgeDB
+import bodyParser from 'body-parser';
 
+// Crear el cliente de EdgeDB
 const client = edgedb.createClient({
-  instanceName: "vercel-rlyXL34RVAZWwkWRjRviDVgB/edgedb-green-tree",
-  secretKey: "nbwt1_eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlZGIuZC5hbGwiOnRydWUsImVkYi5pIjpbInZlcmNlbC1ybHlYTDM0UlZBWld3a1dSalJ2aURWZ0IvZWRnZWRiLWdyZWVuLXRyZWUiXSwiZWRiLnIuYWxsIjp0cnVlLCJpYXQiOjE3MzY5OTExMjAsImlzcyI6ImF3cy5lZGdlZGIuY2xvdWQiLCJqdGkiOiJyb3p4UnRPcEVlLXdla181Q0J2aEpnIiwic3ViIjoicmtMU0FOT3BFZS1kRUVQaTRpMnQ0ZyJ9.Hp9iyOkrNtvuRxK4GvucJW7FIGWDY4cCaxqR-khwgpgLjh74MJyCZlE1N3KEbARjLQxFgEVTN-QIb2CrT0v0_g"
+  instanceName: process.env.EDGEDB_INSTANCE_NAME, // Usamos la variable de entorno
+  secretKey: process.env.EDGEDB_SECRET_KEY, // Y la clave secreta desde la variable de entorno
 });
 
 const app = express();
-app.use(express.json());
+app.use(bodyParser.json());
 
-// Ruta para agregar un usuario
-app.post("/add-user", async (req, res) => {
-  const { nombre, puesto, extension } = req.body;
-
-  if (!nombre || !puesto || !extension || extension.length > 4) {
-    return res.status(400).send({ message: "Datos inválidos. Verifica la información." });
-  }
-
+// Ruta para obtener las extensiones
+app.get('/extensiones', async (req, res) => {
   try {
-    const query = `
-      insert User {
-        name := <str>$nombre,
-        role := <str>$puesto,
-        extension := <str>$extension
-      }
-    `;
-    await client.query(query, { nombre, puesto, extension });
-    res.status(201).send({ message: "Usuario agregado correctamente." });
-  } catch (err) {
-    console.error("Error al agregar usuario:", err);
-    res.status(500).send({ message: "Error interno del servidor." });
-  }
-});
-
-// Ruta para obtener usuarios
-app.get("/users", async (req, res) => {
-  try {
-    const result = await client.query(`
-      select User {
-        name,
-        role,
-        extension
-      }
+    // Realizamos una consulta a EdgeDB para obtener las extensiones
+    const extensiones = await client.query(`
+      SELECT Extension {
+        id,
+        numero,
+        nombre,
+        puesto,
+        sucursal
+      } ORDER BY sucursal;
     `);
-    res.status(200).send(result);
-  } catch (err) {
-    console.error("Error al obtener usuarios:", err);
-    res.status(500).send({ message: "Error interno del servidor." });
+    res.json(extensiones);
+  } catch (error) {
+    console.error("Error al obtener las extensiones:", error);
+    res.status(500).send("Error al obtener las extensiones");
   }
 });
 
-// Servidor en escucha
+// Ruta para agregar una nueva extensión
+app.post('/extensiones', async (req, res) => {
+  try {
+    const { numero, nombre, puesto, sucursal } = req.body;
+    // Realizamos una consulta para agregar la extensión
+    const nuevaExtension = await client.query(`
+      INSERT Extension {
+        numero := <str>$numero,
+        nombre := <str>$nombre,
+        puesto := <str>$puesto,
+        sucursal := <str>$sucursal
+      }`, {
+      numero, nombre, puesto, sucursal,
+    });
+
+    res.status(201).json(nuevaExtension);
+  } catch (error) {
+    console.error("Error al agregar extensión:", error);
+    res.status(500).send("Error al agregar la extensión");
+  }
+});
+
+// Ruta para modificar una extensión
+app.put('/extensiones/:id', async (req, res) => {
+  const { id } = req.params;
+  const { numero, nombre, puesto, sucursal } = req.body;
+  try {
+    const extensionModificada = await client.query(`
+      UPDATE Extension
+      FILTER .id = <uuid>$id
+      SET {
+        numero := <str>$numero,
+        nombre := <str>$nombre,
+        puesto := <str>$puesto,
+        sucursal := <str>$sucursal
+      }
+      RETURNING Extension {
+        id,
+        numero,
+        nombre,
+        puesto,
+        sucursal
+      }
+    `, { id, numero, nombre, puesto, sucursal });
+
+    res.json(extensionModificada);
+  } catch (error) {
+    console.error("Error al modificar la extensión:", error);
+    res.status(500).send("Error al modificar la extensión");
+  }
+});
+
+// Ruta para eliminar una extensión
+app.delete('/extensiones/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await client.query(`
+      DELETE Extension
+      FILTER .id = <uuid>$id
+    `, { id });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error al eliminar la extensión:", error);
+    res.status(500).send("Error al eliminar la extensión");
+  }
+});
+
+// Configuración del servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor ejecutándose en el puerto ${PORT}`);
+  console.log(`Servidor en funcionamiento en el puerto ${PORT}`);
 });
