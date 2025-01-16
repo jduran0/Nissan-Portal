@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@supabase/supabase-js": "^2.47.14",
+    "bootstrap-icons": "^1.11.3",
     "edgedb": "^1.5.12",
     "express": "^4.21.2"
   },
@@ -13,6 +14,5 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {},
   "description": ""
 }
