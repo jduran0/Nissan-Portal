@@ -164,7 +164,7 @@
                 const puesto = document.getElementById(`puesto-${id}`).value;
                 const extension = document.getElementById(`extension-${id}`).value;
 
-                if (!/^\d{4}$/.test(extension)) {
+               if (!/^\d{4}$/.test(extension)) {
                     alert('La extensión debe tener 4 dígitos');
                     return;
                 }
@@ -220,7 +220,7 @@
                 }
             }
 
-            // Agregar extensión
+            // Agregar extensión con limpieza de formulario
             document.getElementById('extensionForm').addEventListener('submit', async function(event) {
                 event.preventDefault();
 
@@ -234,6 +234,10 @@
                         .insert([{ nombre, puesto, extension, sucursal }]);
 
                     if (error) throw error;
+                    
+                    // Limpiar el formulario después de una inserción exitosa
+                    this.reset();
+                    
                     await cargarExtensiones();
                 } catch (error) {
                     console.error('Error al agregar extensión:', error);
