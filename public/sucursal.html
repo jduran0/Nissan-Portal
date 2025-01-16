@@ -21,7 +21,7 @@
         </div>
 
         <h1 id="sucursalTitle" class="text-3xl font-bold mb-8"></h1>
-        
+
         <!-- Barra de búsqueda -->
         <div class="bg-white p-6 rounded-lg shadow-md mb-8">
             <div class="flex gap-4 items-end">
@@ -48,7 +48,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Formulario de nueva extensión -->
         <div class="bg-white p-6 rounded-lg shadow-md mb-8">
             <h2 class="text-xl font-semibold mb-4">Agregar Nueva Extensión</h2>
@@ -105,7 +105,7 @@
 
                 return allExtensions.filter(ext => {
                     const searchLower = searchText.toLowerCase();
-                    
+
                     if (searchType === 'todos') {
                         return ext.nombre.toLowerCase().includes(searchLower) ||
                                ext.puesto.toLowerCase().includes(searchLower) ||
@@ -185,7 +185,6 @@
                     console.error('Error al guardar extensión:', error);
                     alert('Error al guardar extensión: ' + error.message);
                 }
-                document.getElementById(`nombre-${id}`).value = "";
             };
 
             // Función de eliminar
