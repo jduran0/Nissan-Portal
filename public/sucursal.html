@@ -122,6 +122,7 @@
 
                 filteredData.forEach(ext => {
                     const tr = document.createElement('tr');
+                    tr.setAttribute('data-id', ext.id);
                     tr.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="w-full" value="${ext.nombre}" onchange="updateField('${ext.id}', 'nombre', this.value)"></td>
                         <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="w-full" value="${ext.puesto}" onchange="updateField('${ext.id}', 'puesto', this.value)"></td>
@@ -135,7 +136,7 @@
                 });
             }
 
-            // Editar una extensión (habilitar campos para ser editados)
+            // Función que se activa cuando haces clic en el botón de "Editar"
             window.editarExtension = function(id) {
                 const tr = document.querySelector(`tr[data-id='${id}']`);
                 const inputs = tr.querySelectorAll('input');
@@ -200,8 +201,10 @@
                 }
             }
 
-            document.getElementById('extensionForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
+            // Agregar extensión
+            document.getElementById('extensionForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+
                 const nombre = document.getElementById('nombre').value;
                 const puesto = document.getElementById('puesto').value;
                 const extension = document.getElementById('extension').value;
@@ -212,8 +215,6 @@
                         .insert([{ nombre, puesto, extension, sucursal }]);
 
                     if (error) throw error;
-
-                    e.target.reset();
                     await cargarExtensiones();
                 } catch (error) {
                     console.error('Error al agregar extensión:', error);
@@ -221,6 +222,7 @@
                 }
             });
 
+            // Buscar extensiones cuando se cambia el texto
             document.getElementById('searchInput').addEventListener('input', function() {
                 const searchText = this.value;
                 const searchType = document.getElementById('searchType').value;
@@ -228,7 +230,8 @@
                 updateTable(filteredExtensions);
             });
 
-            await cargarExtensiones();
+            // Cargar las extensiones cuando se inicia la página
+            cargarExtensiones();
         });
     </script>
 </body>
