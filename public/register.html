@@ -19,7 +19,8 @@
                 <label class="block text-sm font-medium text-gray-700">Contraseña</label>
                 <input type="password" id="password" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
             </div>
-            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 w-full">Registrarse</button>
+            <!-- Botón deshabilitado mientras se procesa el registro -->
+            <button id="registerButton" type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 w-full" disabled>Registrarse</button>
         </form>
     </div>
 
@@ -30,26 +31,25 @@
 
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const registerButton = document.getElementById('registerButton');
+
+            // Deshabilitar el botón de registro para prevenir múltiples clics
+            registerButton.disabled = true;
 
             const { error } = await supabaseClient.auth.signUp({ email, password });
 
             if (error) {
                 alert('Error al registrarse: ' + error.message);
             } else {
-                // Guardamos los datos en la tabla 'usuarios' de Supabase
-                const { data, error: insertError } = await supabaseClient
-                    .from('usuarios')
-                    .insert([{ email: email }]); // Puedes agregar más campos si es necesario
-
-                if (insertError) {
-                    alert('Error al registrar usuario en la base de datos: ' + insertError.message);
-                } else {
-                    alert('Registro exitoso');
-                    window.location.href = 'login.html';
-                }
+                alert('Registro exitoso');
+                window.location.href = 'login.html';
             }
+
+            // Volver a habilitar el botón de registro después de completar el proceso
+            registerButton.disabled = false;
         });
     </script>
 </body>
