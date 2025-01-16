@@ -1,63 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Extensiones - Sucursal</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Gestión de Extensiones - Sucursal</h1>
-  <div>
-    <h2>Buscar Usuarios</h2>
-    <input type="text" id="buscarNombre" placeholder="Buscar por nombre">
-    <input type="text" id="buscarPuesto" placeholder="Buscar por puesto">
-    <input type="text" id="buscarExtension" placeholder="Buscar por extensión">
-    <button onclick="buscar()">Buscar</button>
-  </div>
-  <div>
-    <h2>Agregar Usuario</h2>
-    <input type="text" id="nombre" placeholder="Nombre">
-    <input type="text" id="puesto" placeholder="Puesto">
-    <input type="text" id="extension" placeholder="Extensión (máx. 4 dígitos)">
-    <button onclick="agregar()">Registrar Usuario</button>
-  </div>
-  <div>
-    <h3>Regresar</h3>
-    <a href="index.html">Volver</a>
-  </div>
+  <header>
+    <h1>Gestión de Extensiones</h1>
+    <h2 id="sucursalNombre">Lista de Usuarios</h2>
+  </header>
+
+  <section>
+    <h3>Buscar Usuarios</h3>
+    <form id="buscarUsuariosForm">
+      <input type="text" id="nombre" placeholder="Buscar por nombre">
+      <input type="text" id="puesto" placeholder="Buscar por puesto">
+      <input type="number" id="extension" placeholder="Buscar por extensión">
+      <button type="submit">Buscar</button>
+    </form>
+    <ul id="resultadosUsuarios"></ul>
+  </section>
+
+  <section>
+    <h3>Agregar Usuario</h3>
+    <form action="/agregarUsuario" method="POST">
+      <input type="text" name="nombre" placeholder="Nombre" required>
+      <input type="text" name="puesto" placeholder="Puesto" required>
+      <input type="text" name="extension" placeholder="Extensión (máx. 4 dígitos)" required maxlength="4">
+      <input type="hidden" name="sucursal" id="sucursalInput">
+      <button type="submit">Registrar Usuario</button>
+    </form>
+  </section>
+
+  <footer>
+    <button onclick="history.back()">Regresar</button>
+    <p>&copy; 2025 NISSAN Rancagua</p>
+  </footer>
 
   <script>
-    async function buscar() {
-      // Implementación de búsqueda
-      alert("Búsqueda implementada.");
-    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const sucursal = urlParams.get('sucursal');
+    document.getElementById('sucursalNombre').textContent += ` - ${sucursal}`;
+    document.getElementById('sucursalInput').value = sucursal;
 
-    async function agregar() {
-      const nombre = document.getElementById("nombre").value;
-      const puesto = document.getElementById("puesto").value;
-      const extension = document.getElementById("extension").value;
+    const form = document.getElementById('buscarUsuariosForm');
+    const resultados = document.getElementById('resultadosUsuarios');
 
-      if (!nombre || !puesto || extension.length > 4) {
-        alert("Por favor ingresa datos válidos.");
-        return;
-      }
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const nombre = document.getElementById('nombre').value;
+      const puesto = document.getElementById('puesto').value;
+      const extension = document.getElementById('extension').value;
 
       try {
-        const response = await fetch("/add-user", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ nombre, puesto, extension }),
-        });
+        const response = await fetch(`/buscarUsuarios?nombre=${nombre}&puesto=${puesto}&extension=${extension}&sucursal=${sucursal}`);
+        const usuarios = await response.json();
 
-        const result = await response.json();
-        alert(result.message);
-      } catch (err) {
-        console.error("Error al agregar usuario:", err);
-        alert("Error al registrar usuario.");
+        resultados.innerHTML = usuarios.map(user => `
+          <li>
+            Nombre: ${user.nombre}, Puesto: ${user.puesto}, Extensión: ${user.extension}
+          </li>
+        `).join('');
+      } catch (error) {
+        console.error('Error al buscar usuarios:', error);
+        resultados.innerHTML = `<li>Error al realizar la búsqueda.</li>`;
       }
-    }
+    });
   </script>
 </body>
 </html>
