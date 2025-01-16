@@ -1,51 +1,26 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Extensiones - NISSAN Rancagua</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Gestión de Extensiones</title>
 </head>
 <body>
-  <header>
-    <h1>Portal de Gestión de Extensiones</h1>
-    <h2>Selecciona una sucursal</h2>
-  </header>
-
-  <main class="sucursales-container">
-    <div class="sucursal" onclick="redirectToSucursal('Nissan Rancagua Colima')">
-      <img src="https://lh3.googleusercontent.com/p/AF1QipON5LtkK5caxyKn3atEcfeIdv2M4IFW0ZliSnRZ=s1360-w1360-h1020" alt="Sucursal Colima">
-      <h3>Nissan Rancagua Colima</h3>
-    </div>
-    <div class="sucursal" onclick="redirectToSucursal('Nissan Rancagua Tecomán')">
-      <img src="https://lh3.googleusercontent.com/p/AF1QipNaGzX0eQ2xiRYbipWpqcgX2oDN4nRTHXxwX8ey=s1360-w1360-h1020" alt="Sucursal Tecomán">
-      <h3>Nissan Rancagua Tecomán</h3>
-    </div>
-    <div class="sucursal" onclick="redirectToSucursal('Nissan Rancagua Manzanillo')">
-      <img src="https://fastly.4sqi.net/img/general/600x600/346112470_gVdDaO-bhYAJeDyNEkOtMSDige8166vpS7Qfxz8V1xI.jpg" alt="Sucursal Manzanillo">
-      <h3>Nissan Rancagua Manzanillo</h3>
-    </div>
-    <div class="sucursal" onclick="redirectToSucursal('Nissan Rancagua Villa de Álvarez')">
-      <img src="https://photos.plugshare.com/photos/256494.jpg" alt="Sucursal Villa de Álvarez">
-      <h3>Nissan Rancagua Villa de Álvarez</h3>
-    </div>
-    <div class="sucursal" onclick="redirectToSucursal('Nissan Rancagua Ciudad Guzmán')">
-      <img src="https://lh3.googleusercontent.com/p/AF1QipPvHYuoE3bEHxPTE3iyEWscdjqWI9X-b0f3Wkde=s1360-w1360-h1020" alt="Sucursal Ciudad Guzmán">
-      <h3>Nissan Rancagua Ciudad Guzmán</h3>
-    </div>
-    <div class="sucursal" onclick="redirectToSucursal('Nissan Rancagua Autlán')">
-      <img src="https://lh3.googleusercontent.com/p/AF1QipNY2SkPrM6VsK5q9YTuF4VIdY30VVHVQPHtcag7=s1360-w1360-h1020" alt="Sucursal Autlán">
-      <h3>Nissan Rancagua Autlán</h3>
-    </div>
-  </main>
-
-  <footer>
-    <p>&copy; 2025 NISSAN Rancagua</p>
-  </footer>
+  <h1>Selecciona una Sucursal</h1>
+  <select id="sucursal">
+    <option value="sucursal1">Sucursal 1</option>
+    <option value="sucursal2">Sucursal 2</option>
+    <option value="sucursal3">Sucursal 3</option>
+    <option value="sucursal4">Sucursal 4</option>
+    <option value="sucursal5">Sucursal 5</option>
+    <option value="sucursal6">Sucursal 6</option>
+  </select>
+  <button onclick="redirect()">Seleccionar</button>
 
   <script>
-    function redirectToSucursal(sucursal) {
-      window.location.href = `sucursal.html?sucursal=${encodeURIComponent(sucursal)}`;
+    function redirect() {
+      const sucursal = document.getElementById("sucursal").value;
+      window.location.href = `/sucursal.html?sucursal=${sucursal}`;
     }
   </script>
 </body>
