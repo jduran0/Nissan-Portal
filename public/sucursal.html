@@ -3,136 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sucursal</title>
+    <title>Directorio de Extensiones</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-6 text-center">Gestión de Extensiones - Sucursal</h1>
+        <h1 id="sucursalTitle" class="text-3xl font-bold mb-8"></h1>
 
-        <!-- Tabla para gestionar extensiones -->
-        <div class="bg-white p-6 rounded-lg shadow-md max-w-4xl mx-auto">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr>
-                        <th class="border p-2 text-left font-medium">Nombre</th>
-                        <th class="border p-2 text-left font-medium">Cargo</th>
-                        <th class="border p-2 text-left font-medium">Extensión</th>
-                        <th class="border p-2 text-center font-medium">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="userTable">
-                    <!-- Se llenará dinámicamente -->
-                </tbody>
-            </table>
+        <!-- Formulario de nueva extensión -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Agregar Nueva Extensión</h2>
+            <form id="extensionForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nombre</label>
+                    <input type="text" id="nombre" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Puesto</label>
+                    <input type="text" id="puesto" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Extensión (4 dígitos)</label>
+                    <input type="text" id="extension" required pattern="\d{4}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Agregar</button>
+            </form>
         </div>
 
-        <!-- Formulario para agregar o editar extensiones -->
-        <div class="bg-white mt-8 p-6 rounded-lg shadow-md max-w-md mx-auto">
-            <h2 id="formTitle" class="text-xl font-bold mb-4">Agregar Extensión</h2>
-            <form id="userForm">
-                <input type="hidden" id="userId">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Nombre</label>
-                    <input type="text" id="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Cargo</label>
-                    <input type="text" id="position" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Extensión</label>
-                    <input type="number" id="extension" maxlength="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                </div>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-full">Guardar</button>
-            </form>
+        <!-- Tabla de extensiones -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Puesto</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Extensión</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="extensionesTable" class="bg-white divide-y divide-gray-200"></tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        const supabaseUrl = 'https://fgeuiluxxfnwjszvjnoi.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnZXVpbHV4eGZud2pzenZqbm9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5OTgwODMsImV4cCI6MjA1MjU3NDA4M30.UE8KQgGD59-VUrSFpp5kChinQJmlxQG3izUwehzPquQ';
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        document.addEventListener('DOMContentLoaded', function() {
+            const supabaseUrl = 'https://fgeuiluxxfnwjszvjnoi.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnZXVpbHV4eGZud2pzenZqbm9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5OTgwODMsImV4cCI6MjA1MjU3NDA4M30.UE8KQgGD59-VUrSFpp5kChinQJmlxQG3izUwehzPquQ';
+            const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Cargar extensiones al cargar la página
-        async function loadUsers() {
-            const { data, error } = await supabaseClient.from('extensiones').select('*');
-            if (error) {
-                console.error('Error al cargar usuarios:', error);
-                return;
+            const urlParams = new URLSearchParams(window.location.search);
+            const sucursal = urlParams.get('sucursal');
+            document.getElementById('sucursalTitle').textContent = sucursal;
+
+            async function cargarExtensiones() {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('extensiones')
+                        .select('*')
+                        .eq('sucursal', sucursal);
+
+                    if (error) throw error;
+
+                    const tbody = document.getElementById('extensionesTable');
+                    tbody.innerHTML = '';
+
+                    data.forEach(ext => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <input type="text" value="${ext.nombre}" class="nombre-input px-2 py-1 w-full border rounded">
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <input type="text" value="${ext.puesto}" class="puesto-input px-2 py-1 w-full border rounded">
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <input type="text" value="${ext.extension}" class="extension-input px-2 py-1 w-full border rounded" pattern="\\d{4}">
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <button onclick="guardarCambios('${ext.id}', this)" class="text-green-600 hover:text-green-900 mr-3">Guardar</button>
+                                <button onclick="eliminarExtension('${ext.id}')" class="text-red-600 hover:text-red-900">Eliminar</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } catch (error) {
+                    console.error('Error al cargar extensiones:', error);
+                    alert('Error al cargar extensiones: ' + error.message);
+                }
             }
-            const tableBody = document.getElementById('userTable');
-            tableBody.innerHTML = '';
 
-            data.forEach(user => {
-                tableBody.innerHTML += `
-                    <tr>
-                        <td class="border p-2">${user.name}</td>
-                        <td class="border p-2">${user.position}</td>
-                        <td class="border p-2">${user.extension}</td>
-                        <td class="border p-2 text-center">
-                            <button onclick="editUser(${user.id}, '${user.name}', '${user.position}', '${user.extension}')" class="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600">Editar</button>
-                            <button onclick="deleteUser(${user.id})" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Eliminar</button>
-                        </td>
-                    </tr>`;
+            document.getElementById('extensionForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nombre = document.getElementById('nombre').value;
+                const puesto = document.getElementById('puesto').value;
+                const extension = document.getElementById('extension').value;
+
+                try {
+                    const { error } = await supabaseClient
+                        .from('extensiones')
+                        .insert([{ nombre, puesto, extension, sucursal }]);
+
+                    if (error) throw error;
+
+                    e.target.reset();
+                    await cargarExtensiones();
+                } catch (error) {
+                    console.error('Error al agregar extensión:', error);
+                    alert('Error al agregar extensión: ' + error.message);
+                }
             });
-        }
 
-        // Guardar o actualizar usuarios
-        document.getElementById('userForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const userId = document.getElementById('userId').value;
-            const name = document.getElementById('name').value;
-            const position = document.getElementById('position').value;
-            const extension = document.getElementById('extension').value;
+            window.guardarCambios = async function(id, button) {
+                const row = button.closest('tr');
+                const nombre = row.querySelector('.nombre-input').value;
+                const puesto = row.querySelector('.puesto-input').value;
+                const extension = row.querySelector('.extension-input').value;
 
-            if (userId) {
-                // Actualizar usuario existente
-                const { error } = await supabaseClient.from('extensiones').update({ name, position, extension }).eq('id', userId);
-                if (error) {
-                    console.error('Error al actualizar usuario:', error);
+                if (!/^\d{4}$/.test(extension)) {
+                    alert('La extensión debe tener 4 dígitos');
+                    return;
                 }
-            } else {
-                // Crear nuevo usuario
-                const { error } = await supabaseClient.from('extensiones').insert({ name, position, extension });
-                if (error) {
-                    console.error('Error al agregar usuario:', error);
+
+                try {
+                    const { error } = await supabaseClient
+                        .from('extensiones')
+                        .update({ nombre, puesto, extension })
+                        .eq('id', id);
+
+                    if (error) throw error;
+
+                    await cargarExtensiones();
+                } catch (error) {
+                    console.error('Error al guardar cambios:', error);
+                    alert('Error al guardar cambios: ' + error.message);
                 }
-            }
-            loadUsers();
-            resetForm();
+            };
+
+            window.eliminarExtension = async function(id) {
+                if (!confirm('¿Estás seguro de eliminar esta extensión?')) return;
+
+                try {
+                    const { error } = await supabaseClient
+                        .from('extensiones')
+                        .delete()
+                        .eq('id', id);
+
+                    if (error) throw error;
+
+                    await cargarExtensiones();
+                } catch (error) {
+                    console.error('Error al eliminar extensión:', error);
+                    alert('Error al eliminar extensión: ' + error.message);
+                }
+            };
+
+            cargarExtensiones();
         });
-
-        // Editar usuario
-        function editUser(id, name, position, extension) {
-            document.getElementById('userId').value = id;
-            document.getElementById('name').value = name;
-            document.getElementById('position').value = position;
-            document.getElementById('extension').value = extension;
-            document.getElementById('formTitle').textContent = 'Editar Extensión';
-        }
-
-        // Eliminar usuario
-        async function deleteUser(id) {
-            const { error } = await supabaseClient.from('extensiones').delete().eq('id', id);
-            if (error) {
-                console.error('Error al eliminar usuario:', error);
-            }
-            loadUsers();
-        }
-
-        // Resetear formulario
-        function resetForm() {
-            document.getElementById('userId').value = '';
-            document.getElementById('name').value = '';
-            document.getElementById('position').value = '';
-            document.getElementById('extension').value = '';
-            document.getElementById('formTitle').textContent = 'Agregar Extensión';
-        }
-
-        // Cargar usuarios al inicio
-        loadUsers();
     </script>
 </body>
 </html>
