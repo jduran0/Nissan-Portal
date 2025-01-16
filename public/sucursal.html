@@ -1,133 +1,47 @@
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inicializar cliente de Supabase
-        const supabaseUrl = 'https://fgeuiluxxfnwjszvjnoi.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZnZXVpbHV4eGZud2pzenZqbm9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5OTgwODMsImV4cCI6MjA1MjU3NDA4M30.UE8KQgGD59-VUrSFpp5kChinQJmlxQG3izUwehzPquQ';
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Extensiones</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0"></script>
+</head>
+<body>
+    <h1>Gestión de Extensiones - Sucursal: <span id="sucursalTitle"></span></h1>
+    
+    <!-- Formulario para agregar/editar -->
+    <form id="extensionForm">
+        <div>
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre">
+        </div>
+        <div>
+            <label for="puesto">Puesto:</label>
+            <input type="text" id="puesto" name="puesto">
+        </div>
+        <div>
+            <label for="extension">Extensión (4 dígitos):</label>
+            <input type="text" id="extension" name="extension">
+        </div>
+        <button type="submit">Guardar</button>
+    </form>
 
-        // Obtener sucursal de la URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const sucursal = urlParams.get('sucursal');
-        document.getElementById('sucursalTitle').textContent = sucursal;
+    <h2>Listado de Extensiones</h2>
+    <!-- Tabla de extensiones -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Puesto</th>
+                <th>Extensión</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="extensionesTable">
+            <!-- Las filas de las extensiones se llenarán aquí dinámicamente -->
+        </tbody>
+    </table>
 
-        // Cargar extensiones
-        async function cargarExtensiones() {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('extensiones')
-                    .select('*')
-                    .eq('sucursal', sucursal);
-
-                if (error) throw error;
-
-                const tbody = document.getElementById('extensionesTable');
-                tbody.innerHTML = '';
-
-                data.forEach(ext => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap">${ext.nombre}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${ext.puesto}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">${ext.extension}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <button onclick="editarExtension('${ext.id}')" class="text-blue-600 hover:text-blue-900 mr-3">Editar</button>
-                            <button onclick="eliminarExtension('${ext.id}')" class="text-red-600 hover:text-red-900">Eliminar</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (error) {
-                console.error('Error al cargar las extensiones:', error);
-                alert('Error al cargar las extensiones: ' + error.message);
-            }
-        }
-
-        // Agregar extensión
-        document.getElementById('extensionForm').addEventListener('submit', async function(e) {
-            e.preventDefault(); // Evita que el formulario recargue la página
-            const nombre = document.getElementById('nombre').value;
-            const puesto = document.getElementById('puesto').value;
-            const extension = document.getElementById('extension').value;
-
-            console.log('Form data:', { nombre, puesto, extension });
-
-            // Validar que no esté vacío
-            if (!nombre || !puesto || !extension) {
-                alert('Por favor, complete todos los campos');
-                return;
-            }
-            if (!/^\d{4}$/.test(extension)) {
-                alert('La extensión debe tener 4 dígitos');
-                return;
-            }
-
-            try {
-                // Inserta la nueva extensión
-                const { error } = await supabaseClient
-                    .from('extensiones')
-                    .insert([{
-                        nombre,
-                        puesto,
-                        extension,
-                        sucursal
-                    }]);
-
-                if (error) throw error;
-
-                // Limpiar formulario y recargar tabla
-                e.target.reset();
-                await cargarExtensiones();
-            } catch (error) {
-                console.error('Error al agregar extensión:', error);
-                alert('Error al agregar extensión: ' + error.message);
-            }
-        });
-
-        // Función global para eliminar extensión
-        window.eliminarExtension = async function(id) {
-            if (!confirm('¿Estás seguro de eliminar esta extensión?')) return;
-
-            try {
-                const { error } = await supabaseClient
-                    .from('extensiones')
-                    .delete()
-                    .eq('id', id);
-
-                if (error) throw error;
-                await cargarExtensiones();
-            } catch (error) {
-                console.error('Error al eliminar extensión:', error);
-                alert('Error al eliminar extensión: ' + error.message);
-            }
-        };
-
-        // Función global para editar extensión
-        window.editarExtension = async function(id) {
-            const nombre = prompt('Nuevo nombre:');
-            const puesto = prompt('Nuevo puesto:');
-            const extension = prompt('Nueva extensión (4 dígitos):');
-
-            if (!nombre || !puesto || !extension) return;
-            if (!/^\d{4}$/.test(extension)) {
-                alert('La extensión debe tener 4 dígitos');
-                return;
-            }
-
-            try {
-                const { error } = await supabaseClient
-                    .from('extensiones')
-                    .update({ nombre, puesto, extension })
-                    .eq('id', id);
-
-                if (error) throw error;
-                await cargarExtensiones();
-            } catch (error) {
-                console.error('Error al editar extensión:', error);
-                alert('Error al editar extensión: ' + error.message);
-            }
-        };
-
-        // Cargar extensiones al iniciar
-        cargarExtensiones();
-    });
-</script>
+    <script src="app.js"></script>
+</body>
+</html>
